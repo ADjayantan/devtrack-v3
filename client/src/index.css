@@ -1,0 +1,98 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    @apply dark;
+  }
+
+  body {
+    @apply bg-navy-900 text-slate-100 font-sans antialiased;
+    background-image: radial-gradient(ellipse at 20% 20%, rgba(0, 217, 255, 0.04) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 80%, rgba(124, 58, 237, 0.04) 0%, transparent 60%);
+    min-height: 100vh;
+  }
+
+  * {
+    @apply border-slate-700/50;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-navy-800;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-slate-600 rounded-full;
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-navy-800 border border-slate-700/50 rounded-xl p-6;
+  }
+
+  .btn-primary {
+    @apply bg-cyan-500 text-navy-950 font-semibold px-5 py-2.5 rounded-lg
+           hover:bg-cyan-400 active:scale-95 transition-all duration-150 
+           disabled:opacity-50 disabled:cursor-not-allowed text-sm;
+  }
+
+  .btn-ghost {
+    @apply border border-slate-600 text-slate-300 font-medium px-5 py-2.5 rounded-lg
+           hover:border-slate-400 hover:text-white active:scale-95 transition-all duration-150 text-sm;
+  }
+
+  .btn-danger {
+    @apply border border-red-800/60 text-red-400 font-medium px-4 py-2 rounded-lg text-sm
+           hover:bg-red-950/40 active:scale-95 transition-all duration-150;
+  }
+
+  .input {
+    @apply w-full bg-navy-950 border border-slate-700 rounded-lg px-4 py-2.5 text-sm
+           text-slate-100 placeholder:text-slate-500 outline-none
+           focus:border-cyan-500/60 focus:ring-1 focus:ring-cyan-500/30 transition-all;
+  }
+
+  .label {
+    @apply block text-xs font-medium text-slate-400 mb-1.5 font-mono uppercase tracking-widest;
+  }
+
+  .tag {
+    @apply font-mono text-xs bg-navy-700 text-cyan-400 border border-cyan-900/50 px-2 py-0.5 rounded-md;
+  }
+}
+
+/* ── Light mode overrides ─────────────────────────────────────── */
+html.light body {
+  @apply bg-slate-50 text-slate-900;
+  background-image: none;
+}
+
+html.light .card {
+  @apply bg-white border-slate-200;
+}
+
+html.light .input {
+  @apply bg-slate-100 border-slate-300 text-slate-900 placeholder:text-slate-400;
+}
+
+html.light .label {
+  @apply text-slate-500;
+}
+
+html.light .btn-ghost {
+  @apply border-slate-300 text-slate-600 hover:border-slate-400 hover:text-slate-900;
+}
+
+html.light nav {
+  @apply bg-white/80 border-slate-200;
+}
+
+html.light .tag {
+  @apply bg-cyan-50 text-cyan-700 border-cyan-200;
+}
