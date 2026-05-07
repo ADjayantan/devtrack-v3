@@ -1,6 +1,8 @@
 /** @type {import('tailwindcss').Config} */
 export default {
   content: ['./index.html', './src/**/*.{js,jsx}'],
+  // darkMode: 'class' means Tailwind generates dark: variants when <html> has class="dark"
+  // The actual class is toggled at runtime by ThemeContext.jsx
   darkMode: 'class',
   theme: {
     extend: {
@@ -28,12 +30,12 @@ export default {
       },
       keyframes: {
         fadeIn: {
-          from: { opacity: 0 },
-          to: { opacity: 1 },
+          from: { opacity: '0' },
+          to: { opacity: '1' },
         },
         slideUp: {
-          from: { opacity: 0, transform: 'translateY(16px)' },
-          to: { opacity: 1, transform: 'translateY(0)' },
+          from: { opacity: '0', transform: 'translateY(16px)' },
+          to: { opacity: '1', transform: 'translateY(0)' },
         },
       },
     },
