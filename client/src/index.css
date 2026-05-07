@@ -3,10 +3,12 @@
 @tailwind utilities;
 
 @layer base {
-  html {
-    @apply dark;
-  }
-
+  /*
+   * DO NOT use @apply dark here.
+   * "dark" is a Tailwind variant/modifier — it cannot be used as a utility class.
+   * The dark class is applied to <html> at runtime by ThemeContext.jsx,
+   * and the initial value is set in index.html (class="dark").
+   */
   body {
     @apply bg-navy-900 text-slate-100 font-sans antialiased;
     background-image: radial-gradient(ellipse at 20% 20%, rgba(0, 217, 255, 0.04) 0%, transparent 60%),
@@ -38,7 +40,7 @@
 
   .btn-primary {
     @apply bg-cyan-500 text-navy-950 font-semibold px-5 py-2.5 rounded-lg
-           hover:bg-cyan-400 active:scale-95 transition-all duration-150 
+           hover:bg-cyan-400 active:scale-95 transition-all duration-150
            disabled:opacity-50 disabled:cursor-not-allowed text-sm;
   }
 
