@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback, useId } from 'react';
+import { createContext, useContext, useState, useCallback } from 'react';
 
 const ToastContext = createContext(null);
 
@@ -28,7 +28,7 @@ const BORDER_COLORS = {
 
 const ToastItem = ({ toast, onDismiss }) => (
   <div
-    className={`flex items-start gap-3 bg-navy-800 border ${BORDER_COLORS[toast.type]} 
+    className={`flex items-start gap-3 bg-navy-800 border ${BORDER_COLORS[toast.type]}
                 rounded-xl px-4 py-3 shadow-xl min-w-[260px] max-w-sm animate-slide-up`}
   >
     <span className="mt-0.5 shrink-0">{ICONS[toast.type]}</span>
