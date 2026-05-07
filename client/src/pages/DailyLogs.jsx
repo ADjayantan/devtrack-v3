@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLogs } from '../hooks/useLogs';
 import { useToast } from '../context/ToastContext';
 import { useConfirm } from '../context/ConfirmContext';
@@ -32,7 +32,6 @@ const LogForm = ({ form, editId, submitting, onFormChange, onSubmit, onCancel })
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) return;
-    // FIX BUG-1: wrap in try/catch so errors surface to the parent toast handler
     try {
       await onSubmit();
     } catch {
@@ -118,13 +117,17 @@ const DailyLogs = () => {
   const [exporting, setExporting]     = useState(false);
 
   const {
-    logs, stats, pagination, loading, submitting,
+    logs, stats, pagination, loading, submitting, loadError,
     form, editId, showForm, filters,
     handleFormChange, handleFilterChange, handlePageChange,
     startEdit, cancelForm, submitLog, removeLog, setShowForm,
   } = useLogs();
 
-  // FIX BUG-4: isEdit determined inside submitLog() now — no stale closure
+  // Surface load errors from the hook as toasts
+  useEffect(() => {
+    if (loadError) toast.error('Failed to load logs: ' + loadError.message);
+  }, [loadError]);
+
   const handleSubmit = async () => {
     try {
       const wasEdit = await submitLog();
