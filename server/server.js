@@ -6,9 +6,12 @@ const dotenv = require('dotenv');
 const connectDB = require('./config/db');
 const errorHandler = require('./middleware/errorHandler');
 
-dotenv.config({ path: '../.env' });
+// dotenv.config() with no path argument reads from process.cwd()/.env
+// On Render, env vars are injected directly — dotenv is a no-op there,
+// which is correct. Never hardcode '../.env' — it breaks on deployment.
+dotenv.config();
 
-// --- Fix SEC-04: Validate critical env vars at startup ---
+// Validate critical env vars at startup
 const REQUIRED_ENV = ['MONGO_URI', 'JWT_SECRET'];
 const missing = REQUIRED_ENV.filter((key) => !process.env[key]);
 if (missing.length) {
@@ -24,20 +27,34 @@ const app = express();
 
 connectDB();
 
-// --- Fix SEC-02: Security headers via helmet ---
+// Security headers via helmet
 app.use(helmet());
 
-// --- Fix MAINT-01: Request logging via morgan ---
+// Request logging
 app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 
-// --- Fix SEC-03: Body size cap (10kb is generous for our payloads) ---
+// Body size cap
 app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: false, limit: '10kb' }));
 
-// CORS
+// CORS — allow the Vercel frontend origin
+const allowedOrigins = [
+  process.env.CLIENT_URL || 'http://localhost:5173',
+  // Vercel preview URLs follow this pattern; remove if not needed
+  /\.vercel\.app$/,
+];
+
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || 'http://localhost:5173',
+    origin: (origin, callback) => {
+      // Allow requests with no origin (curl, Postman, mobile apps)
+      if (!origin) return callback(null, true);
+      const allowed = allowedOrigins.some((o) =>
+        typeof o === 'string' ? o === origin : o.test(origin)
+      );
+      if (allowed) return callback(null, true);
+      callback(new Error(`CORS: origin ${origin} not allowed`));
+    },
     credentials: true,
   })
 );
@@ -47,7 +64,7 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/logs', require('./routes/logs'));
 app.use('/api/roadmap', require('./routes/roadmap'));
 
-// Health check (unauthenticated)
+// Health check (unauthenticated — used by Render's health check ping)
 app.get('/api/health', (req, res) =>
   res.json({ status: 'ok', env: process.env.NODE_ENV || 'development' })
 );
@@ -63,7 +80,7 @@ const server = app.listen(PORT, () =>
   console.log(`🚀 DevTrack API on port ${PORT} [${process.env.NODE_ENV || 'development'}]`)
 );
 
-// --- Fix PERF-03: Process-level crash guards ---
+// Process-level crash guards
 process.on('unhandledRejection', (reason) => {
   console.error('🔥 Unhandled Rejection:', reason);
   server.close(() => process.exit(1));
