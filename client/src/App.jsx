@@ -13,6 +13,7 @@ import DailyLogs from './pages/DailyLogs';
 import Roadmap from './pages/Roadmap';
 import Analytics from './pages/Analytics';
 import Profile from './pages/Profile';
+import Activities from './pages/Activities';
 
 const AppLayout = ({ children }) => (
   <><Navbar /><main>{children}</main></>
@@ -30,11 +31,12 @@ const AppRoutes = () => (
     <Route path="/" element={<Navigate to="/dashboard" replace />} />
     <Route path="/login"    element={<PublicRoute><Login /></PublicRoute>} />
     <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
-    <Route path="/dashboard" element={<ProtectedRoute><AppLayout><Dashboard /></AppLayout></ProtectedRoute>} />
-    <Route path="/logs"      element={<ProtectedRoute><AppLayout><DailyLogs /></AppLayout></ProtectedRoute>} />
-    <Route path="/roadmap"   element={<ProtectedRoute><AppLayout><Roadmap /></AppLayout></ProtectedRoute>} />
-    <Route path="/analytics" element={<ProtectedRoute><AppLayout><Analytics /></AppLayout></ProtectedRoute>} />
-    <Route path="/profile"   element={<ProtectedRoute><AppLayout><Profile /></AppLayout></ProtectedRoute>} />
+    <Route path="/dashboard"  element={<ProtectedRoute><AppLayout><Dashboard /></AppLayout></ProtectedRoute>} />
+    <Route path="/logs"       element={<ProtectedRoute><AppLayout><DailyLogs /></AppLayout></ProtectedRoute>} />
+    <Route path="/activities" element={<ProtectedRoute><AppLayout><Activities /></AppLayout></ProtectedRoute>} />
+    <Route path="/roadmap"    element={<ProtectedRoute><AppLayout><Roadmap /></AppLayout></ProtectedRoute>} />
+    <Route path="/analytics"  element={<ProtectedRoute><AppLayout><Analytics /></AppLayout></ProtectedRoute>} />
+    <Route path="/profile"    element={<ProtectedRoute><AppLayout><Profile /></AppLayout></ProtectedRoute>} />
     <Route path="*" element={<Navigate to="/dashboard" replace />} />
   </Routes>
 );
