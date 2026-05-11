@@ -42,4 +42,6 @@ const roadmapSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+roadmapSchema.index({ user: 1 }); // Fix PERF: was doing collection scan on every roadmap query
+
 module.exports = mongoose.model('Roadmap', roadmapSchema);
