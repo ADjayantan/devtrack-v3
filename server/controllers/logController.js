@@ -1,14 +1,19 @@
 const DailyLog = require('../models/DailyLog');
+const Activity = require('../models/Activity');
 
-// ─── Streak Algorithm (UTC-safe) ──────────────────────────────────────────────
-const calculateStreak = (datesSortedDesc) => {
+// ─── Streak Algorithm (24-hour window) ───────────────────────────────────────
+// Streak counts consecutive calendar days of activity (logs OR activities).
+// BUT: if the most recent entry (log or activity) is older than 24 real-world
+// hours, the streak resets to 0 — even if "yesterday" and "today" are only
+// 1 calendar day apart. This is stricter than the old calendar-only check.
+const calculateStreak = (datesSortedDesc, lastTimestampMs) => {
   if (!datesSortedDesc.length) return 0;
+
+  // 24hr window: no activity in the past 24 hours → streak broken
+  const hoursSinceLast = (Date.now() - lastTimestampMs) / (1000 * 60 * 60);
+  if (hoursSinceLast > 24) return 0;
+
   const toDay = (d) => new Date(d + 'T00:00:00Z');
-  const todayStr = new Date().toISOString().split('T')[0];
-  const yesterdayDate = new Date();
-  yesterdayDate.setUTCDate(yesterdayDate.getUTCDate() - 1);
-  const yesterdayStr = yesterdayDate.toISOString().split('T')[0];
-  if (datesSortedDesc[0] !== todayStr && datesSortedDesc[0] !== yesterdayStr) return 0;
   let streak = 1;
   for (let i = 0; i < datesSortedDesc.length - 1; i++) {
     const diff = (toDay(datesSortedDesc[i]) - toDay(datesSortedDesc[i + 1])) / 86400000;
@@ -34,16 +39,29 @@ const getLogs = async (req, res, next) => {
     if (req.query.tag)    filter.tags = req.query.tag.trim();
     if (req.query.search) filter.$text = { $search: req.query.search.trim() };
 
-    const [logs, totalCount, allStats] = await Promise.all([
+    const [logs, totalCount, allStats, activityDates] = await Promise.all([
       DailyLog.find(filter)
         .sort(req.query.search ? { score: { $meta: 'textScore' } } : { date: -1 })
         .skip(skip).limit(limit).lean(),
       DailyLog.countDocuments(filter),
       // Stats always from full dataset — not just this page
-      DailyLog.find({ user: req.userId }).select('date hoursSpent tasksCompleted mood').sort({ date: -1 }).lean(),
+      DailyLog.find({ user: req.userId }).select('date hoursSpent tasksCompleted mood updatedAt').sort({ date: -1 }).lean(),
+      // Activity dates for merged streak calculation
+      Activity.find({ user: req.userId }).select('date updatedAt').sort({ updatedAt: -1 }).lean(),
     ]);
 
-    const streak    = calculateStreak(allStats.map((l) => l.date));
+    // Merge log + activity dates (deduplicated), then sort descending
+    const allDates = [...new Set([
+      ...allStats.map((l) => l.date),
+      ...activityDates.map((a) => a.date),
+    ])].sort().reverse();
+
+    // Last activity timestamp = max of last log.updatedAt and last activity.updatedAt
+    const lastLogMs     = allStats.length    ? new Date(allStats[0].updatedAt).getTime()    : 0;
+    const lastActivityMs = activityDates.length ? new Date(activityDates[0].updatedAt).getTime() : 0;
+    const lastTimestampMs = Math.max(lastLogMs, lastActivityMs);
+
+    const streak     = calculateStreak(allDates, lastTimestampMs);
     const totalHours = allStats.reduce((s, l) => s + l.hoursSpent, 0);
     const totalTasks = allStats.reduce((s, l) => s + l.tasksCompleted, 0);
 
