@@ -6,9 +6,6 @@ const dotenv = require('dotenv');
 const connectDB = require('./config/db');
 const errorHandler = require('./middleware/errorHandler');
 
-// dotenv.config() with no path argument reads from process.cwd()/.env
-// On Render, env vars are injected directly — dotenv is a no-op there,
-// which is correct. Never hardcode '../.env' — it breaks on deployment.
 dotenv.config();
 
 // Validate critical env vars at startup
@@ -26,26 +23,22 @@ if (process.env.JWT_SECRET && process.env.JWT_SECRET.length < 32) {
 const app = express();
 
 // Trust Render's reverse proxy so req.ip reflects the real client IP.
-// Without this, express-rate-limit sees the proxy IP for ALL users → rate limiting broken.
 app.set('trust proxy', 1);
 
 connectDB();
 
-// Security headers via helmet
 app.use(helmet());
-
-// Request logging
 app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
-
-// Body size cap
 app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: false, limit: '10kb' }));
 
-// CORS — allow the Vercel frontend origin
-// Fix SEC-02: Removed the broad /\.vercel\.app$/ regex — it allowed ANY vercel.app
-// subdomain to make credentialed requests. Set CLIENT_URL env var to your specific Vercel URL.
+// CORS — always allow localhost for dev, and CLIENT_URL for production.
+// Both origins are listed explicitly so the server works out-of-the-box
+// even if CLIENT_URL is not yet set on Render.
 const allowedOrigins = [
-  process.env.CLIENT_URL || 'http://localhost:5173',
+  'http://localhost:5173',
+  'http://localhost:4173', // vite preview port
+  ...(process.env.CLIENT_URL ? [process.env.CLIENT_URL] : []),
 ];
 
 app.use(
@@ -57,6 +50,7 @@ app.use(
         typeof o === 'string' ? o === origin : o.test(origin)
       );
       if (allowed) return callback(null, true);
+      console.warn(`CORS blocked origin: ${origin}`);
       callback(new Error(`CORS: origin ${origin} not allowed`));
     },
     credentials: true,
@@ -85,7 +79,6 @@ const server = app.listen(PORT, () =>
   console.log(`🚀 DevTrack API on port ${PORT} [${process.env.NODE_ENV || 'development'}]`)
 );
 
-// Process-level crash guards
 process.on('unhandledRejection', (reason) => {
   console.error('🔥 Unhandled Rejection:', reason);
   server.close(() => process.exit(1));
