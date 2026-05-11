@@ -3,10 +3,11 @@ import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 
 const links = [
-  { to: '/dashboard', label: 'Dashboard', icon: '⬡' },
-  { to: '/logs',      label: 'Logs',      icon: '◈' },
-  { to: '/roadmap',   label: 'Roadmap',   icon: '◎' },
-  { to: '/analytics', label: 'Analytics', icon: '◑' },
+  { to: '/dashboard',  label: 'Dashboard',  icon: '⬡' },
+  { to: '/logs',       label: 'Logs',       icon: '◈' },
+  { to: '/activities', label: 'Activities', icon: '⚡' },
+  { to: '/roadmap',    label: 'Roadmap',    icon: '◎' },
+  { to: '/analytics',  label: 'Analytics',  icon: '◑' },
 ];
 
 const Navbar = () => {
