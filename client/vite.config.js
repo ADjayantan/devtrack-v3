@@ -7,7 +7,17 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     emptyOutDir: true,
-    chunkSizeWarningLimit: 800, // suppress the 500kb warning
+    chunkSizeWarningLimit: 800,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // Split React into its own chunk
+          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+          // Split Recharts (large) into its own chunk
+          'vendor-charts': ['recharts'],
+        },
+      },
+    },
   },
   server: {
     proxy: {
