@@ -25,6 +25,10 @@ if (process.env.JWT_SECRET && process.env.JWT_SECRET.length < 32) {
 
 const app = express();
 
+// Trust Render's reverse proxy so req.ip reflects the real client IP.
+// Without this, express-rate-limit sees the proxy IP for ALL users → rate limiting broken.
+app.set('trust proxy', 1);
+
 connectDB();
 
 // Security headers via helmet
@@ -38,10 +42,10 @@ app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: false, limit: '10kb' }));
 
 // CORS — allow the Vercel frontend origin
+// Fix SEC-02: Removed the broad /\.vercel\.app$/ regex — it allowed ANY vercel.app
+// subdomain to make credentialed requests. Set CLIENT_URL env var to your specific Vercel URL.
 const allowedOrigins = [
   process.env.CLIENT_URL || 'http://localhost:5173',
-  // Vercel preview URLs follow this pattern; remove if not needed
-  /\.vercel\.app$/,
 ];
 
 app.use(
@@ -60,9 +64,10 @@ app.use(
 );
 
 // Routes
-app.use('/api/auth', require('./routes/auth'));
-app.use('/api/logs', require('./routes/logs'));
-app.use('/api/roadmap', require('./routes/roadmap'));
+app.use('/api/auth',       require('./routes/auth'));
+app.use('/api/logs',       require('./routes/logs'));
+app.use('/api/roadmap',    require('./routes/roadmap'));
+app.use('/api/activities', require('./routes/activities'));
 
 // Health check (unauthenticated — used by Render's health check ping)
 app.get('/api/health', (req, res) =>
