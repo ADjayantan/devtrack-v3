@@ -3,32 +3,37 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { fetchLogs } from '../services/logService';
 import { fetchRoadmaps } from '../services/roadmapService';
+import { fetchTodayActivities } from '../services/activityService';
 import { useToast } from '../context/ToastContext';
 import StatCard from '../components/StatCard';
 import WeeklyChart from '../components/WeeklyChart';
 import LoadingSpinner from '../components/LoadingSpinner';
+import { TYPE_META } from '../components/ActivityCard';
 
 // FIX BUG-3: Dashboard now shows toast if API call fails
 const Dashboard = () => {
   const { user } = useAuth();
   const toast = useToast();
-  const [logs, setLogs]       = useState([]);
-  const [stats, setStats]     = useState({ totalDays: 0, totalTasks: 0, totalHours: 0, streak: 0 });
-  const [roadmaps, setRoadmaps] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [logs, setLogs]             = useState([]);
+  const [stats, setStats]           = useState({ totalDays: 0, totalTasks: 0, totalHours: 0, streak: 0 });
+  const [roadmaps, setRoadmaps]     = useState([]);
+  const [todayActivities, setTodayActivities] = useState([]);
+  const [loading, setLoading]       = useState(true);
 
   useEffect(() => {
     const load = async () => {
       try {
-        const [logsRes, roadmapsRes] = await Promise.all([
+        const [logsRes, roadmapsRes, activitiesRes] = await Promise.all([
           fetchLogs({ limit: 50 }),
           fetchRoadmaps(),
+          fetchTodayActivities(),
         ]);
         setLogs(logsRes.data.logs);
         setStats(logsRes.data.stats);
         setRoadmaps(roadmapsRes.data.roadmaps);
+        setTodayActivities(activitiesRes.data.activities);
       } catch (err) {
-        toast.error('Failed to load dashboard. ' + err.message); // FIX BUG-3
+        toast.error('Failed to load dashboard. ' + err.message);
       } finally {
         setLoading(false);
       }
@@ -130,6 +135,31 @@ const Dashboard = () => {
               <div className="flex-1 flex flex-col items-center justify-center text-center">
                 <p className="text-slate-500 text-sm">No roadmap yet</p>
                 <Link to="/roadmap" className="btn-primary mt-3 text-xs">Create Roadmap</Link>
+              </div>
+            )}
+          </div>
+
+          {/* Today's Activities card */}
+          <div className="card">
+            <div className="flex items-center justify-between mb-3">
+              <p className="label">Today's Activities</p>
+              <Link to="/activities" className="text-xs text-cyan-400 hover:text-cyan-300 font-mono">+ log →</Link>
+            </div>
+            {todayActivities.length === 0 ? (
+              <p className="text-slate-500 text-xs font-mono">No activities today yet.</p>
+            ) : (
+              <div className="space-y-2">
+                {todayActivities.map((a) => {
+                  const m = TYPE_META[a.type] || TYPE_META.custom;
+                  const dur = a.duration ? (a.duration < 60 ? `${a.duration}m` : `${Math.floor(a.duration/60)}h${a.duration%60?` ${a.duration%60}m`:''}`) : null;
+                  return (
+                    <div key={a._id} className="flex items-center gap-2">
+                      <span className="text-base">{m.icon}</span>
+                      <span className={`text-xs font-medium ${m.color}`}>{a.name}</span>
+                      {dur && <span className="text-xs text-slate-500 font-mono ml-auto">{dur}</span>}
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
