@@ -143,27 +143,21 @@ const Dashboard = () => {
 
           {/* Today's Activities card */}
           <div className="card">
-            <div className="flex items-center justify-between mb-3">
-              <p className="label">Today's Activities</p>
-              <Link to="/activities" className="text-xs text-cyan-400 hover:text-cyan-300 font-mono">+ log →</Link>
+            <p className="label">// Today's Activities</p>
+            <div className="flex flex-wrap gap-2.5 mt-4">
+              {todayActivities.map((a) => {
+                const m = TYPE_META[a.type] || TYPE_META.custom;
+                return (
+                  <div key={a._id} className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-800 bg-navy-950/60 text-xs font-mono select-none">
+                    <span className="text-base">{m.icon}</span>
+                    <span className="text-slate-300 font-medium capitalize">{a.name}</span>
+                  </div>
+                );
+              })}
+              <Link to="/activities" className="flex items-center justify-center w-9 h-9 rounded-xl border border-dashed border-slate-800 text-slate-500 hover:text-cyan-400 hover:border-cyan-500/50 hover:bg-cyan-500/5 transition-all text-sm font-bold font-mono">
+                +
+              </Link>
             </div>
-            {todayActivities.length === 0 ? (
-              <p className="text-slate-500 text-xs font-mono">No activities today yet.</p>
-            ) : (
-              <div className="space-y-2">
-                {todayActivities.map((a) => {
-                  const m = TYPE_META[a.type] || TYPE_META.custom;
-                  const dur = a.duration ? (a.duration < 60 ? `${a.duration}m` : `${Math.floor(a.duration/60)}h${a.duration%60?` ${a.duration%60}m`:''}`) : null;
-                  return (
-                    <div key={a._id} className="flex items-center gap-2">
-                      <span className="text-base">{m.icon}</span>
-                      <span className={`text-xs font-medium ${m.color}`}>{a.name}</span>
-                      {dur && <span className="text-xs text-slate-500 font-mono ml-auto">{dur}</span>}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
           </div>
         </div>
       </div>
