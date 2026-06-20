@@ -49,6 +49,40 @@ const Roadmap = () => {
     }
   };
 
+  const handleCreateStudyPlan = async () => {
+    setSubmitting(true);
+    try {
+      const studyPlan = {
+        title: '100-Day Coding Study Plan (Java)',
+        description: 'Java edition · Amazon · Google · Microsoft · NVIDIA · Zoho · Trilogy coding round plan (Units C0-C13 + Mixed Mocks).',
+        milestones: [
+          'C0 (Days 1–5): Java Collections, Fast I/O, Big-O Complexity',
+          'C1 (Days 6–12): Arrays + Two Pointers (Two Sum, Kadane, 3Sum, Trapping Rain Water)',
+          'C2 (Days 13–19): Strings (Valid Anagram, Longest Common Prefix, Palindromic Substring)',
+          'C3 (Days 20–25): Sliding Window + Hashing (Min Window Substring, Subarray Sum Equals K)',
+          'C4 (Days 26–32): Linked List + LRU (Reverse LL, Merge Sorted, LRU Cache, k-Group)',
+          'C5 (Days 33–38): Stack & Queue + Monotonic (Valid Parentheses, Daily Temperatures, Sliding Window Max)',
+          'C6 (Days 39–47): Trees & BST (Diameter, LCA, Level Order, Validate BST, Max Path Sum)',
+          'C7 (Days 48–52): Trie + Heap / Top-K (Implement Trie, Merge K Sorted, Find Median)',
+          'C8 (Days 53–59): Recursion & Backtracking (Subsets, Permutations, Phone Letter Combos, N-Queens)',
+          'C9 (Days 60–64): Greedy & Intervals (Jump Game, Merge Intervals, Meeting Rooms II)',
+          'C10 (Days 65–74): Graphs (BFS/DFS, Course Schedule, Word Ladder, Dijkstra, DSU)',
+          'C11 (Days 75–84): Dynamic Programming (House Robber, LIS, Word Break, Partition Equal Subset)',
+          'C12 (Days 85–90): Hard Tier: Bit-ops, DSU, Segment/Fenwick Tree, Count Primes',
+          'C13 (Days 91–95): Matrix + Math + Zoho-special (Spiral Matrix, Pattern Printing, Wildcard Matching)',
+          'D (Days 96–100): Company Mixed Mock Sets (Amazon, Google, Microsoft, Zoho/NVIDIA, Trilogy)'
+        ]
+      };
+      await createRoadmap(studyPlan);
+      await loadRoadmaps();
+      toast.success('100-Day Study Plan loaded successfully!');
+    } catch (err) {
+      toast.error(err.message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const handleAddMilestone = async (roadmapId) => {
     const text = milestoneInputs[roadmapId]?.trim();
     if (!text) { toast.error('Milestone title cannot be empty.'); return; }
@@ -109,9 +143,18 @@ const Roadmap = () => {
           </p>
         </div>
         {!showCreateForm && (
-          <button onClick={() => setShowCreateForm(true)} className="btn-primary shrink-0">
-            + New Roadmap
-          </button>
+          <div className="flex gap-2.5">
+            <button
+              onClick={handleCreateStudyPlan}
+              className="btn-ghost shrink-0 px-4 py-2.5 font-mono uppercase text-xs tracking-wider border border-slate-900 bg-navy-950/40"
+              disabled={submitting}
+            >
+              {submitting ? 'loading...' : '+ 100-Day Study Plan'}
+            </button>
+            <button onClick={() => setShowCreateForm(true)} className="btn-primary shrink-0">
+              + New Roadmap
+            </button>
+          </div>
         )}
       </div>
 
