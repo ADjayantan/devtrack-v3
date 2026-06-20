@@ -1,47 +1,64 @@
 import { formatDate } from '../utils/dateUtils';
 
 const MOOD_LABELS = { 1: '😞', 2: '😕', 3: '😐', 4: '😊', 5: '🤩' };
-const MOOD_EMOJIS = { 1: '😞', 2: '😕', 3: '😐', 4: '😊', 5: '🤩' };
+const MOOD_EMOJIS = { 1: '🚀', 2: '🧠', 3: '🐛', 4: '😊', 5: '🤩' }; // Derived from mockup emojis
 
 const LogCard = ({ log, onEdit, onDelete }) => (
-  <div className="card hover:border-slate-700/60 transition-all duration-300 animate-slide-up accent-bar-cyan">
-    <div className="flex items-start justify-between gap-4">
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 mb-3">
-          <p className="font-mono text-sm font-bold text-white tracking-tight">{log.date}</p>
-          {log.mood && <span className="text-base">{MOOD_LABELS[log.mood] || '📝'}</span>}
-        </div>
-        
-        <p className="label !mb-1.5">// learned</p>
-        <p className="text-sm text-slate-300 leading-relaxed font-sans">{log.learned}</p>
-        
-        <div className="flex items-center gap-4 mt-4 text-xs font-mono text-slate-500">
-          <span className="flex items-center gap-1">
-            <span className="text-slate-400">✓</span> {log.tasksCompleted} tasks
-          </span>
-          <span className="flex items-center gap-1">
-            <span className="text-slate-400">⏱</span> {log.hoursSpent}h studied
-          </span>
-        </div>
-        
+  <div className="card hover:border-slate-800/80 transition-all duration-300 animate-slide-up flex flex-col justify-between">
+    <div>
+      {/* Card Header: Date + Emoji */}
+      <div className="flex items-center justify-between mb-2">
+        <p className="font-mono text-sm font-bold text-white tracking-tight">{log.date}</p>
+        <span className="text-base select-none">
+          {log.mood ? (MOOD_EMOJIS[log.mood] || MOOD_LABELS[log.mood]) : '🚀'}
+        </span>
+      </div>
+
+      {/* Horizontal Divider Line */}
+      <div className="w-full border-t border-slate-900 mb-3" />
+
+      {/* Learned Header */}
+      <p className="text-[10px] font-bold text-cyan-400 font-mono uppercase tracking-widest mb-1">
+        // LEARNED
+      </p>
+
+      {/* Learned content */}
+      <p className="text-xs text-slate-300 leading-relaxed font-sans mt-1.5">{log.learned}</p>
+    </div>
+
+    {/* Footer area: tags + stats + actions */}
+    <div className="flex flex-wrap items-center justify-between gap-3 mt-4 pt-3 border-t border-slate-900/50">
+      <div className="flex flex-wrap items-center gap-3 text-[10px] font-mono text-slate-500">
+        <span className="flex items-center gap-1">
+          <span className="text-slate-400">✓</span> {log.tasksCompleted} tasks
+        </span>
+        <span className="flex items-center gap-1">
+          <span className="text-slate-400">⏱</span> {log.hoursSpent}h studied
+        </span>
         {log.tags?.length > 0 && (
-          <div className="flex flex-wrap gap-1.5 mt-3">
-            {log.tags.map((tag) => <span key={tag} className="tag">{tag}</span>)}
+          <div className="flex flex-wrap gap-1">
+            {log.tags.map((tag) => (
+              <span key={tag} className="text-[9px] font-mono font-bold text-cyan-500/80 bg-cyan-950/20 px-1.5 py-0.5 rounded border border-cyan-950/40">
+                #{tag}
+              </span>
+            ))}
           </div>
         )}
       </div>
 
-      {/* Action Buttons */}
-      <div className="flex gap-1.5 shrink-0 self-start">
-        <button onClick={() => onEdit(log)}
-          className="text-[10px] text-slate-400 hover:text-white font-mono border border-slate-800 bg-navy-900/40
-                     hover:border-slate-600 px-2.5 py-1.5 rounded-xl transition-all uppercase tracking-wider">
-          edit
+      {/* Monospace Action Links */}
+      <div className="flex items-center gap-2 select-none font-mono text-[10px] uppercase tracking-wider">
+        <button
+          onClick={() => onEdit(log)}
+          className="text-slate-400 hover:text-white transition-colors"
+        >
+          [ edit ]
         </button>
-        <button onClick={() => onDelete(log._id)}
-          className="text-[10px] text-red-400 hover:text-red-300 font-mono border border-red-950/50 bg-red-950/5
-                     hover:border-red-900/60 px-2.5 py-1.5 rounded-xl transition-all uppercase tracking-wider">
-          del
+        <button
+          onClick={() => onDelete(log._id)}
+          className="text-red-400 hover:text-red-300 transition-colors"
+        >
+          [ delete ]
         </button>
       </div>
     </div>

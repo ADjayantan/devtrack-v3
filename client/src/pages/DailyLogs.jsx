@@ -7,6 +7,7 @@ import LogCard from '../components/LogCard';
 import LogFilters from '../components/LogFilters';
 import Pagination from '../components/Pagination';
 import LoadingSpinner from '../components/LoadingSpinner';
+import SegmentedControl from '../components/SegmentedControl';
 
 const MOOD_OPTIONS = [
   { value: '1', label: '😞 Rough' },
@@ -199,7 +200,7 @@ const DailyLogs = () => {
   const hasActiveFilters = filters.search || filters.tag || filters.startDate || filters.endDate;
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-8 space-y-6">
+    <div className="max-w-3xl mx-auto px-4 py-8 space-y-6 pb-24 md:pb-8">
       {/* Header */}
       <div className="flex items-center justify-between animate-fade-in gap-4">
         <div>
@@ -221,8 +222,11 @@ const DailyLogs = () => {
         </div>
       </div>
 
+      {/* Mobile Logs/Habits Switcher */}
+      <SegmentedControl />
+
       {/* Stats bar */}
-      <div className="flex flex-wrap gap-4 font-mono text-xs text-slate-400 border-b border-slate-900 pb-4 select-none">
+      <div className="hidden md:flex flex-wrap gap-4 font-mono text-xs text-slate-400 border-b border-slate-900 pb-4 select-none">
         <span>🔥 <span className="text-cyan-400 font-bold">{stats.streak || 0}</span> streak</span>
         <div className="border-l border-slate-850 h-4" />
         <span>📅 <span className="text-white font-bold">{stats.totalDays || 0}</span> days</span>
@@ -326,7 +330,7 @@ const DailyLogs = () => {
         </div>
       )}
 
-      <Pagination pagination={pagination} onPageChange={handlePageChange} />
+      <Pagination pagination={pagination} onPageChange={handlePageChange} variant="simple" />
     </div>
   );
 };

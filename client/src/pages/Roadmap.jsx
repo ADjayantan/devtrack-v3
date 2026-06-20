@@ -98,7 +98,7 @@ const Roadmap = () => {
   if (loading) return <LoadingSpinner />;
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-8 space-y-6">
+    <div className="max-w-3xl mx-auto px-4 pt-8 pb-24 md:pb-8 space-y-6">
       {/* Header */}
       <div className="flex items-start justify-between animate-fade-in">
         <div>
@@ -168,10 +168,10 @@ const Roadmap = () => {
           const progress = total > 0 ? Math.round((done / total) * 100) : 0;
 
           return (
-            <div key={roadmap._id} className="card space-y-5 animate-slide-up border-l-4 border-l-cyan-400">
+            <div key={roadmap._id} className="card space-y-5 animate-slide-up border-l-4 border-l-cyan-500">
               {/* Header */}
               <div className="flex items-start justify-between gap-4">
-                <div className="space-y-1">
+                <div className="space-y-1.5 flex-1">
                   <h2 className="text-xl font-bold text-white tracking-tight">{roadmap.title}</h2>
                   {roadmap.description && (
                     <p className="text-slate-400 text-sm leading-relaxed">{roadmap.description}</p>
@@ -179,7 +179,7 @@ const Roadmap = () => {
                 </div>
                 <button
                   onClick={() => handleDeleteRoadmap(roadmap._id)}
-                  className="w-9 h-9 rounded-xl border border-red-950/40 bg-red-950/10 text-red-400 hover:bg-red-950/30 hover:border-red-900/60 flex items-center justify-center transition-all shrink-0"
+                  className="w-10 h-10 rounded-xl border border-red-500/20 bg-red-500/5 hover:bg-red-500/10 text-red-400 hover:border-red-500/40 flex items-center justify-center transition-all shrink-0"
                   title="Delete Roadmap"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -189,36 +189,45 @@ const Roadmap = () => {
               </div>
 
               {/* Progress */}
-              <div className="bg-navy-950/30 border border-slate-900 p-4 rounded-2xl">
-                <div className="flex justify-between items-center text-xs font-mono mb-2">
+              <div className="pt-1">
+                <div className="flex justify-between items-center text-xs font-mono mb-2 select-none">
                   <span className="text-slate-400 font-bold">{done} / {total} milestones</span>
                   <span className="text-cyan-400 font-extrabold">{progress}%</span>
                 </div>
                 <div className="h-2 bg-[#060a12] rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-gradient-to-r from-cyan-500 to-cyan-400 rounded-full transition-all duration-700 shadow-[0_0_10px_rgba(6,182,212,0.3)]"
+                    className="h-full bg-cyan-400 rounded-full transition-all duration-500"
                     style={{ width: `${progress}%` }}
                   />
                 </div>
               </div>
 
               {/* Milestones Header */}
-              {total > 0 && <p className="label !mb-2 tracking-widest font-mono">// milestones</p>}
-
-              {/* Milestones List */}
-              <div className="space-y-2">
-                {roadmap.milestones.map((milestone) => (
-                  <MilestoneItem
-                    key={milestone._id}
-                    milestone={milestone}
-                    onToggle={(mid) => handleToggleMilestone(roadmap._id, mid)}
-                    onDelete={(mid) => handleDeleteMilestone(roadmap._id, mid)}
-                  />
-                ))}
+              <div className="flex items-center gap-1.5 pt-3 border-t border-slate-900/40">
+                <span className="text-xs text-slate-500">
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                </span>
+                <p className="text-[10px] font-bold text-slate-500 font-mono uppercase tracking-widest select-none">MILESTONES</p>
               </div>
 
+              {/* Milestones List */}
+              {total > 0 ? (
+                <div className="space-y-3.5 pl-1">
+                  {roadmap.milestones.map((milestone) => (
+                    <MilestoneItem
+                      key={milestone._id}
+                      milestone={milestone}
+                      onToggle={(mid) => handleToggleMilestone(roadmap._id, mid)}
+                      onDelete={(mid) => handleDeleteMilestone(roadmap._id, mid)}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-slate-600 font-mono pl-1 select-none">No milestones added yet.</p>
+              )}
+
               {/* Add milestone */}
-              <div className="flex gap-2 pt-4 border-t border-slate-800/80">
+              <div className="flex gap-2 pt-4 border-t border-slate-900/50">
                 <input
                   className="input flex-1 text-sm bg-[#060a12]/40"
                   type="text"
@@ -229,7 +238,7 @@ const Roadmap = () => {
                   }
                   onKeyDown={(e) => e.key === 'Enter' && handleAddMilestone(roadmap._id)}
                 />
-                <button onClick={() => handleAddMilestone(roadmap._id)} className="btn-ghost shrink-0">
+                <button onClick={() => handleAddMilestone(roadmap._id)} className="btn-ghost shrink-0 px-4 py-2 font-mono uppercase text-xs">
                   Add
                 </button>
               </div>

@@ -33,60 +33,85 @@ const ActivityCard = ({ activity, onEdit, onDelete }) => {
   const duration = formatDuration(activity.duration);
   const accentClass = ACCENT_BARS[activity.type] || 'accent-bar-cyan';
 
+  // Helper to derive mockup-style outline badges
+  const getOutlineBadge = () => {
+    if (activity.type === 'coding') {
+      const lowerName = activity.name.toLowerCase();
+      if (lowerName.includes('api') || lowerName.includes('backend') || lowerName.includes('database') || lowerName.includes('refactor') || lowerName.includes('sql') || lowerName.includes('server')) {
+        return <span className="badge-outline-cyan">Backend</span>;
+      }
+      if (lowerName.includes('ui') || lowerName.includes('frontend') || lowerName.includes('css') || lowerName.includes('react') || lowerName.includes('component')) {
+        return <span className="badge-outline-cyan">Frontend</span>;
+      }
+      return <span className="badge-outline-cyan">Coding</span>;
+    }
+    if (activity.type === 'reading') {
+      return <span className="badge-outline-blue">Study</span>;
+    }
+    if (activity.type === 'meditation') {
+      return <span className="badge-outline-violet">Mindfulness</span>;
+    }
+    if (activity.type === 'exercise') {
+      if (activity.intensity) {
+        return (
+          <span className={`badge-outline-${activity.intensity === 'high' ? 'red' : activity.intensity === 'medium' ? 'orange' : 'cyan'} capitalize`}>
+            {activity.intensity} Intensity
+          </span>
+        );
+      }
+      return <span className="badge-outline-orange">Workout</span>;
+    }
+    return <span className="badge-outline-cyan">Habit</span>;
+  };
+
   return (
-    <div className={`card hover:border-slate-700/60 transition-all duration-300 animate-slide-up relative overflow-hidden ${accentClass}`}>
+    <div className={`card hover:border-slate-800/80 transition-all duration-300 animate-slide-up relative overflow-hidden flex flex-col justify-between ${accentClass}`}>
       <div className="flex items-start gap-4">
-        {/* Type icon */}
-        <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg shrink-0 ${meta.bg} border ${meta.border} shadow-inner`}>
+        {/* Type icon in square glass box */}
+        <div className="w-11 h-11 rounded-xl border border-slate-900 bg-[#060a12] flex items-center justify-center text-lg shrink-0 select-none shadow-sm">
           {meta.icon}
         </div>
 
         {/* Content */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className={`text-[10px] font-mono font-bold uppercase tracking-wider ${meta.color}`}>
-              {meta.label}
-            </span>
-            {activity.intensity && (
-              <span className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded-lg border uppercase tracking-wider ${INTENSITY_COLORS[activity.intensity]}`}>
-                {activity.intensity}
-              </span>
-            )}
-          </div>
-          <p className="text-base text-white font-bold tracking-tight mt-1">{activity.name}</p>
-          <div className="flex items-center gap-4 mt-2 text-slate-500 text-xs font-mono">
-            <span>{activity.date}</span>
+          {/* Title & Date */}
+          <p className="text-base text-white font-bold tracking-tight">{activity.name}</p>
+          <p className="text-[10px] font-mono text-slate-500 mt-0.5">{activity.date}</p>
+
+          {/* Badges row */}
+          <div className="flex items-center gap-2 mt-2 flex-wrap">
             {duration && (
-              <span className="flex items-center gap-1 text-slate-400 bg-navy-950/40 border border-slate-900 px-2 py-0.5 rounded-lg">
+              <span className="badge-dark flex items-center gap-1">
                 ⏱ {duration}
               </span>
             )}
+            {getOutlineBadge()}
           </div>
+
+          {/* Notes */}
           {activity.notes && (
-            <div className="mt-3 text-xs text-slate-400 leading-relaxed bg-navy-950/30 border border-slate-900/50 p-3 rounded-xl font-sans">
+            <div className="mt-3.5 text-xs text-slate-400 leading-relaxed font-sans border-t border-slate-900/50 pt-2.5">
               <p className="font-mono text-[9px] text-slate-500 uppercase tracking-widest mb-1">// notes</p>
               {activity.notes}
             </div>
           )}
         </div>
+      </div>
 
-        {/* Actions */}
-        <div className="flex gap-1.5 shrink-0 self-start">
-          <button
-            onClick={() => onEdit(activity)}
-            className="text-[10px] text-slate-400 hover:text-white font-mono border border-slate-800 bg-navy-900/40
-                       hover:border-slate-600 px-2.5 py-1.5 rounded-xl transition-all uppercase tracking-wider"
-          >
-            edit
-          </button>
-          <button
-            onClick={() => onDelete(activity._id)}
-            className="text-[10px] text-red-400 hover:text-red-300 font-mono border border-red-950/50 bg-red-950/5
-                       hover:border-red-900/60 px-2.5 py-1.5 rounded-xl transition-all uppercase tracking-wider"
-          >
-            del
-          </button>
-        </div>
+      {/* Monospace Action Links */}
+      <div className="flex items-center justify-end gap-3 mt-4 pt-3 border-t border-slate-900/50 select-none font-mono text-[10px] uppercase tracking-wider">
+        <button
+          onClick={() => onEdit(activity)}
+          className="text-slate-400 hover:text-white transition-colors"
+        >
+          [ edit ]
+        </button>
+        <button
+          onClick={() => onDelete(activity._id)}
+          className="text-red-400 hover:text-red-300 transition-colors"
+        >
+          [ delete ]
+        </button>
       </div>
     </div>
   );

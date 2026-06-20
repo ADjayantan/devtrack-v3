@@ -8,6 +8,8 @@ import ActivityCard, { TYPE_META } from '../components/ActivityCard';
 import Pagination from '../components/Pagination';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { today } from '../utils/dateUtils';
+import SegmentedControl from '../components/SegmentedControl';
+
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const TYPES = ['exercise', 'reading', 'meditation', 'coding', 'custom'];
@@ -264,7 +266,7 @@ const Activities = () => {
   const topType = Object.entries(stats.typeCounts).sort((a, b) => b[1] - a[1])[0];
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-8 space-y-6">
+    <div className="max-w-3xl mx-auto px-4 py-8 space-y-6 pb-24 md:pb-8">
       {/* Header */}
       <div className="flex items-center justify-between animate-fade-in">
         <div>
@@ -278,8 +280,11 @@ const Activities = () => {
         )}
       </div>
 
+      {/* Mobile Logs/Habits Switcher */}
+      <SegmentedControl />
+
       {/* Stats bar */}
-      <div className="flex flex-wrap gap-4 font-mono text-xs text-slate-400 border-b border-slate-800 pb-4">
+      <div className="hidden md:flex flex-wrap gap-4 font-mono text-xs text-slate-400 border-b border-slate-800 pb-4">
         <span>🎯 <span className="text-white">{stats.totalActivities}</span> total</span>
         <span>⏱ <span className="text-white">{fmtDuration(stats.totalDuration)}</span> logged</span>
         {topType && (
@@ -299,11 +304,13 @@ const Activities = () => {
       )}
 
       {/* Type filter tabs */}
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-2 select-none animate-fade-in">
         <button
           onClick={() => { setTypeFilter(''); setPage(1); }}
-          className={`px-3 py-1.5 text-xs font-mono rounded-lg border transition-all
-            ${!typeFilter ? 'bg-slate-700 border-slate-600 text-white' : 'border-slate-700 text-slate-400 hover:border-slate-500'}`}
+          className={`px-4 py-1.5 text-xs font-sans rounded-full border transition-all
+            ${!typeFilter 
+              ? 'border-cyan-500/20 bg-cyan-500/10 text-cyan-400 font-semibold' 
+              : 'border-slate-900 bg-[#0a0f1e]/20 text-slate-400 hover:text-slate-200'}`}
         >
           All
         </button>
@@ -313,12 +320,14 @@ const Activities = () => {
           return (
             <button key={t}
               onClick={() => { setTypeFilter(t); setPage(1); }}
-              className={`flex items-center gap-1 px-3 py-1.5 text-xs font-mono rounded-lg border transition-all
-                ${active ? `${m.bg} ${m.border} ${m.color}` : 'border-slate-700 text-slate-400 hover:border-slate-500'}`}
+              className={`flex items-center gap-1 px-4 py-1.5 text-xs font-sans rounded-full border transition-all
+                ${active 
+                  ? 'border-cyan-500/20 bg-cyan-500/10 text-cyan-400 font-semibold' 
+                  : 'border-slate-900 bg-[#0a0f1e]/20 text-slate-400 hover:text-slate-200'}`}
             >
-              {m.icon} {m.label}
+              <span>{m.icon}</span> {m.label}
               {stats.typeCounts[t] ? (
-                <span className="text-slate-500 ml-0.5">({stats.typeCounts[t]})</span>
+                <span className="text-slate-500/80 ml-1 font-mono text-[10px]">({stats.typeCounts[t]})</span>
               ) : null}
             </button>
           );

@@ -2,9 +2,10 @@ import { useState, useEffect } from 'react';
 import { fetchAnalytics } from '../services/logService';
 import { useToast } from '../context/ToastContext';
 import LoadingSpinner from '../components/LoadingSpinner';
+import StatCard from '../components/StatCard';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
-  LineChart, Line, CartesianGrid, Legend, Cell,
+  LineChart, Line, CartesianGrid, Cell,
 } from 'recharts';
 
 const MOOD_LABELS = { 1: '😞', 2: '😕', 3: '😐', 4: '😊', 5: '🤩' };
@@ -48,7 +49,7 @@ const Heatmap = ({ data }) => {
 
   return (
     <div className="card">
-      <p className="label mb-4">// Activity Heatmap (6 months)</p>
+      <p className="text-[10px] font-bold text-slate-500 font-mono uppercase tracking-widest mb-4">// Activity Heatmap (6 months)</p>
       <div className="flex gap-1 overflow-x-auto pb-2 scrollbar-thin">
         {weeks.map((week, wi) => (
           <div key={wi} className="flex flex-col gap-1 shrink-0">
@@ -59,7 +60,7 @@ const Heatmap = ({ data }) => {
           </div>
         ))}
       </div>
-      <div className="flex items-center gap-2.5 mt-4 text-[10px] text-slate-500 font-mono">
+      <div className="flex items-center gap-2.5 mt-4 text-[10px] text-slate-500 font-mono select-none">
         <span>Less</span>
         {['bg-slate-800/40', 'bg-cyan-950/80', 'bg-cyan-800/70', 'bg-cyan-600/80', 'bg-cyan-400'].map((c) => (
           <div key={c} className={`w-3 h-3 rounded-[3px] ${c}`} />
@@ -73,10 +74,10 @@ const Heatmap = ({ data }) => {
 const CustomTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-navy-950 border border-slate-850 rounded-xl px-3.5 py-2 text-xs font-mono shadow-2xl">
-      <p className="text-slate-400 mb-1.5">{label}</p>
+    <div className="bg-[#050814] border border-slate-900 rounded-xl px-3.5 py-2 text-xs font-mono shadow-2xl">
+      <p className="text-slate-400 mb-1">{label}</p>
       {payload.map((p) => (
-        <p key={p.dataKey} className="flex items-center gap-1.5 font-semibold" style={{ color: p.color }}>
+        <p key={p.dataKey} className="flex items-center gap-1.5 font-bold" style={{ color: p.color }}>
           <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: p.color }} />
           {p.name}: {p.value}
         </p>
@@ -89,6 +90,7 @@ const Analytics = () => {
   const toast = useToast();
   const [data, setData]     = useState(null);
   const [loading, setLoading] = useState(true);
+  const [activeWeek, setActiveWeek] = useState('W4');
 
   useEffect(() => {
     fetchAnalytics()
@@ -100,7 +102,7 @@ const Analytics = () => {
   if (loading) return <LoadingSpinner />;
   if (!data)   return <div className="text-center py-20 text-slate-500 font-mono">No analytics data yet.</div>;
 
-  const { monthly, topTags, moodTrend, heatmap } = data;
+  const { topTags, moodTrend, heatmap } = data;
 
   // Calculate dynamic stats
   const totalHours = heatmap.reduce((s, h) => s + h.hours, 0);
@@ -129,135 +131,241 @@ const Analytics = () => {
   }
   if (currentStreak > bestStreak) bestStreak = currentStreak;
 
+  // Calculate W1-W4 weekly data
+  const getWeeklySummary = (heatmap) => {
+    const todayDate = new Date();
+    todayDate.setHours(23, 59, 59, 999);
+    
+    const w4Start = new Date(todayDate); w4Start.setDate(w4Start.getDate() - 6); w4Start.setHours(0, 0, 0, 0);
+    const w3Start = new Date(w4Start); w3Start.setDate(w3Start.getDate() - 7);
+    const w2Start = new Date(w3Start); w2Start.setDate(w2Start.getDate() - 7);
+    const w1Start = new Date(w2Start); w1Start.setDate(w1Start.getDate() - 7);
+
+    let w1Hours = 0, w2Hours = 0, w3Hours = 0, w4Hours = 0;
+    let w1Tasks = 0, w2Tasks = 0, w3Tasks = 0, w4Tasks = 0;
+
+    heatmap.forEach((day) => {
+      const d = new Date(day.date + 'T00:00:00');
+      if (d >= w4Start && d <= todayDate) {
+        w4Hours += day.hours;
+        w4Tasks += (day.tasks || 0);
+      } else if (d >= w3Start && d < w4Start) {
+        w3Hours += day.hours;
+        w3Tasks += (day.tasks || 0);
+      } else if (d >= w2Start && d < w3Start) {
+        w2Hours += day.hours;
+        w2Tasks += (day.tasks || 0);
+      } else if (d >= w1Start && d < w2Start) {
+        w1Hours += day.hours;
+        w1Tasks += (day.tasks || 0);
+      }
+    });
+
+    return [
+      { name: 'W1', hours: parseFloat(w1Hours.toFixed(1)), tasks: w1Tasks },
+      { name: 'W2', hours: parseFloat(w2Hours.toFixed(1)), tasks: w2Tasks },
+      { name: 'W3', hours: parseFloat(w3Hours.toFixed(1)), tasks: w3Tasks },
+      { name: 'W4', hours: parseFloat(w4Hours.toFixed(1)), tasks: w4Tasks },
+    ];
+  };
+
+  const weeklySummary = getWeeklySummary(heatmap);
+
+  // Dynamic tags classification
+  let codingCount = 0;
+  let reviewCount = 0;
+  let learningCount = 0;
+  let meetingCount = 0;
+  
+  topTags.forEach(({ tag, count }) => {
+    const t = tag.toLowerCase();
+    if (t.includes('code') || t.includes('dev') || t.includes('api') || t.includes('frontend') || t.includes('backend')) {
+      codingCount += count;
+    } else if (t.includes('review') || t.includes('pr') || t.includes('git') || t.includes('github') || t.includes('merge')) {
+      reviewCount += count;
+    } else if (t.includes('learn') || t.includes('study') || t.includes('research') || t.includes('read') || t.includes('book')) {
+      learningCount += count;
+    } else if (t.includes('meeting') || t.includes('ops') || t.includes('admin') || t.includes('call') || t.includes('sync')) {
+      meetingCount += count;
+    }
+  });
+
+  const totalTagCounts = codingCount + reviewCount + learningCount + meetingCount;
+  const codingPct = totalTagCounts > 0 ? Math.round((codingCount / totalTagCounts) * 100) : 45;
+  const reviewPct = totalTagCounts > 0 ? Math.round((reviewCount / totalTagCounts) * 100) : 25;
+  const learningPct = totalTagCounts > 0 ? Math.round((learningCount / totalTagCounts) * 100) : 15;
+  const meetingPct = totalTagCounts > 0 ? Math.round((meetingCount / totalTagCounts) * 100) : 15;
+
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8 space-y-8">
+    <div className="max-w-6xl mx-auto px-4 pt-8 pb-24 md:pb-8 space-y-8 animate-fade-in">
       {/* Header */}
-      <div className="animate-fade-in">
-        <p className="font-mono text-cyan-500 text-sm">// metrics & analytics</p>
-        <h1 className="text-3xl font-extrabold text-white mt-1 tracking-tight">Performance Overview</h1>
+      <div>
+        <p className="font-mono text-cyan-500 text-sm mb-1">// metrics & analytics</p>
+        <h1 className="text-3xl font-extrabold text-white tracking-tight">Performance Overview</h1>
       </div>
 
-      {/* 4 Stat Cards matching mockup */}
+      {/* 4 Premium Stat Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Card 1 */}
-        <div className="card border-l-4 border-l-cyan-400">
-          <p className="label">// Avg Daily Hours</p>
-          <div className="flex items-end gap-1.5 mt-2">
-            <span className="text-3xl font-bold font-mono text-white">{avgHours}</span>
-            <span className="text-xs text-slate-500 font-mono mb-1">hrs</span>
-          </div>
-          <p className="text-[10px] text-emerald-400 font-mono mt-2">📈 +12% from last week</p>
-        </div>
-
-        {/* Card 2 */}
-        <div className="card border-l-4 border-l-cyan-400">
-          <p className="label">// Best Streak</p>
-          <div className="flex items-end gap-1.5 mt-2">
-            <span className="text-3xl font-bold font-mono text-white">{bestStreak}</span>
-            <span className="text-xs text-slate-500 font-mono mb-1">days</span>
-          </div>
-          <p className="text-[10px] text-slate-500 font-mono mt-2">Current streak active</p>
-        </div>
-
-        {/* Card 3 */}
-        <div className="card border-l-4 border-l-cyan-400">
-          <p className="label">// Tasks Completed</p>
-          <div className="flex items-end gap-1.5 mt-2">
-            <span className="text-3xl font-bold font-mono text-white">{totalTasks}</span>
-            <span className="text-xs text-slate-500 font-mono mb-1">done</span>
-          </div>
-          <p className="text-[10px] text-red-400 font-mono mt-2">📉 -3% from last week</p>
-        </div>
-
-        {/* Card 4 */}
-        <div className="card border-l-4 border-l-cyan-400">
-          <p className="label">// Deep Work Ratio</p>
-          <div className="flex items-end gap-1.5 mt-2">
-            <span className="text-3xl font-bold font-mono text-white">68%</span>
-            <span className="text-xs text-slate-500 font-mono mb-1">ratio</span>
-          </div>
-          <p className="text-[10px] text-cyan-400 font-mono mt-2">⚡ Top 10% this month</p>
-        </div>
+        <StatCard label="Avg Daily Hours" value={avgHours} unit="hrs" icon="⏱️" accent />
+        <StatCard label="Best Streak" value={bestStreak} unit="days" icon="🔥" />
+        <StatCard label="Tasks Completed" value={totalTasks} unit="done" icon="✅" />
+        <StatCard label="Deep Work Ratio" value="68" unit="%" icon="⚡" />
       </div>
 
       {/* Heatmap */}
       <Heatmap data={heatmap} />
 
-      {/* Monthly hours + tasks charts */}
-      <div className="card">
-        <p className="label mb-5">// Monthly Overview</p>
-        {monthly.length === 0 ? (
-          <p className="text-slate-500 text-sm text-center py-8 font-mono">Log some entries to see monthly trends.</p>
-        ) : (
-          <ResponsiveContainer width="100%" height={220}>
-            <BarChart data={monthly} barGap={4}>
-              <CartesianGrid vertical={false} stroke="rgba(148,163,184,0.04)" />
-              <XAxis dataKey="month" tick={{ fontSize: 10, fontFamily: 'IBM Plex Mono', fill: '#64748b' }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 10, fontFamily: 'IBM Plex Mono', fill: '#64748b' }} axisLine={false} tickLine={false} width={28} />
-              <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(148,163,184,0.03)' }} />
-              <Legend wrapperStyle={{ fontSize: 10, fontFamily: 'IBM Plex Mono', color: '#64748b', paddingTop: 10 }} />
-              <Bar dataKey="hours" name="Hours" fill="#22d3ee" fillOpacity={0.85} radius={[4,4,0,0]} />
-              <Bar dataKey="tasks" name="Tasks" fill="#8b5cf6" fillOpacity={0.8} radius={[4,4,0,0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        )}
+      {/* Weekly summary cards (W1-W4) with glowing active week */}
+      <div className="space-y-4">
+        <div className="flex items-center gap-1.5">
+          <span className="text-xs text-slate-500 select-none">
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+          </span>
+          <p className="text-[10px] font-bold text-slate-500 font-mono uppercase tracking-widest select-none">Weekly Performance Tracker</p>
+        </div>
+
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {weeklySummary.map((w) => {
+            const isActive = w.name === activeWeek;
+            return (
+              <div
+                key={w.name}
+                onClick={() => setActiveWeek(w.name)}
+                className={`card cursor-pointer transition-all duration-300 select-none flex flex-col justify-between ${
+                  isActive
+                    ? 'border-cyan-500/50 bg-[#00d9ff]/5 shadow-[0_0_15px_rgba(0,217,255,0.1)]'
+                    : 'hover:border-slate-800 bg-[#0a0f1e]/20 border-slate-900/50'
+                }`}
+              >
+                <div className="flex justify-between items-start gap-1">
+                  <span className={`text-[10px] font-mono font-bold tracking-widest ${isActive ? 'text-cyan-400' : 'text-slate-500'}`}>
+                    {w.name} {isActive && '● ACTIVE'}
+                  </span>
+                  <span className="text-xs shrink-0">{isActive ? '⚡' : '📅'}</span>
+                </div>
+                <div className="mt-3.5">
+                  <div className="text-3xl font-extrabold text-white font-mono tracking-tight">{w.hours}h</div>
+                  <p className="text-[9px] font-mono font-bold text-slate-500 mt-1 uppercase tracking-wider">{w.tasks} tasks completed</p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
 
+      {/* Two separate weekly charts (Hours and Tasks) */}
+      <div className="grid md:grid-cols-2 gap-6">
+        {/* Hours Per Week Chart */}
+        <div className="card">
+          <p className="text-[10px] font-bold text-slate-500 font-mono uppercase tracking-widest mb-5 select-none">// Hours Per Week</p>
+          <ResponsiveContainer width="100%" height={200}>
+            <BarChart data={weeklySummary} barCategoryGap="30%">
+              <CartesianGrid vertical={false} stroke="rgba(148,163,184,0.04)" />
+              <XAxis dataKey="name" tick={{ fontSize: 10, fontFamily: 'IBM Plex Mono', fill: '#64748b' }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fontSize: 10, fontFamily: 'IBM Plex Mono', fill: '#64748b' }} axisLine={false} tickLine={false} width={24} />
+              <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(148,163,184,0.02)' }} />
+              <Bar dataKey="hours" radius={[4, 4, 0, 0]}>
+                {weeklySummary.map((entry, index) => {
+                  const isSelected = entry.name === activeWeek;
+                  return (
+                    <Cell
+                      key={`cell-hours-${index}`}
+                      fill={isSelected ? '#00d9ff' : 'rgba(6, 182, 212, 0.25)'}
+                      stroke={isSelected ? '#ffffff' : 'transparent'}
+                      strokeWidth={isSelected ? 1.5 : 0}
+                      className={isSelected ? 'drop-shadow-[0_0_8px_rgba(0,217,255,0.5)]' : ''}
+                    />
+                  );
+                })}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Tasks Per Week Chart */}
+        <div className="card">
+          <p className="text-[10px] font-bold text-slate-500 font-mono uppercase tracking-widest mb-5 select-none">// Tasks Per Week</p>
+          <ResponsiveContainer width="100%" height={200}>
+            <BarChart data={weeklySummary} barCategoryGap="30%">
+              <CartesianGrid vertical={false} stroke="rgba(148,163,184,0.04)" />
+              <XAxis dataKey="name" tick={{ fontSize: 10, fontFamily: 'IBM Plex Mono', fill: '#64748b' }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fontSize: 10, fontFamily: 'IBM Plex Mono', fill: '#64748b' }} axisLine={false} tickLine={false} width={24} />
+              <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(148,163,184,0.02)' }} />
+              <Bar dataKey="tasks" radius={[4, 4, 0, 0]}>
+                {weeklySummary.map((entry, index) => {
+                  const isSelected = entry.name === activeWeek;
+                  return (
+                    <Cell
+                      key={`cell-tasks-${index}`}
+                      fill={isSelected ? '#a855f7' : 'rgba(168, 85, 247, 0.25)'}
+                      stroke={isSelected ? '#ffffff' : 'transparent'}
+                      strokeWidth={isSelected ? 1.5 : 0}
+                      className={isSelected ? 'drop-shadow-[0_0_8px_rgba(168,85,247,0.5)]' : ''}
+                    />
+                  );
+                })}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* Category Breakdown & Mood Trend */}
       <div className="grid lg:grid-cols-2 gap-6">
-        {/* Category Breakdown matching mockup */}
+        {/* Category Breakdown */}
         <div className="card flex flex-col justify-between">
           <div>
-            <p className="label mb-4">// Category Breakdown</p>
+            <p className="text-[10px] font-bold text-slate-500 font-mono uppercase tracking-widest mb-6 select-none">// Category Breakdown</p>
             <div className="space-y-4">
-              {/* Item 1 */}
+              {/* Coding */}
               <div>
                 <div className="flex justify-between text-xs font-mono mb-1.5">
                   <span className="text-slate-300 font-bold">Coding / Development</span>
-                  <span className="text-cyan-400 font-extrabold">45%</span>
+                  <span className="text-cyan-400 font-extrabold">{codingPct}%</span>
                 </div>
-                <div className="h-2 bg-[#060a12] rounded-full">
-                  <div className="h-full bg-cyan-400 rounded-full shadow-[0_0_8px_rgba(34,211,238,0.3)]" style={{ width: '45%' }} />
+                <div className="h-2 bg-[#060a12] rounded-full overflow-hidden">
+                  <div className="h-full bg-cyan-400 rounded-full transition-all duration-500" style={{ width: `${codingPct}%` }} />
                 </div>
               </div>
-              {/* Item 2 */}
+              {/* Reviews */}
               <div>
                 <div className="flex justify-between text-xs font-mono mb-1.5">
                   <span className="text-slate-300 font-bold">Reviews / Pull Requests</span>
-                  <span className="text-violet-400 font-extrabold">25%</span>
+                  <span className="text-purple-400 font-extrabold">{reviewPct}%</span>
                 </div>
-                <div className="h-2 bg-[#060a12] rounded-full">
-                  <div className="h-full bg-violet-500 rounded-full shadow-[0_0_8px_rgba(139,92,246,0.3)]" style={{ width: '25%' }} />
+                <div className="h-2 bg-[#060a12] rounded-full overflow-hidden">
+                  <div className="h-full bg-purple-500 rounded-full transition-all duration-500" style={{ width: `${reviewPct}%` }} />
                 </div>
               </div>
-              {/* Item 3 */}
+              {/* Learning */}
               <div>
                 <div className="flex justify-between text-xs font-mono mb-1.5">
                   <span className="text-slate-300 font-bold">Learning & Research</span>
-                  <span className="text-blue-400 font-extrabold">15%</span>
+                  <span className="text-blue-400 font-extrabold">{learningPct}%</span>
                 </div>
-                <div className="h-2 bg-[#060a12] rounded-full">
-                  <div className="h-full bg-blue-500 rounded-full shadow-[0_0_8px_rgba(59,130,246,0.3)]" style={{ width: '15%' }} />
+                <div className="h-2 bg-[#060a12] rounded-full overflow-hidden">
+                  <div className="h-full bg-blue-500 rounded-full transition-all duration-500" style={{ width: `${learningPct}%` }} />
                 </div>
               </div>
-              {/* Item 4 */}
+              {/* Meetings */}
               <div>
                 <div className="flex justify-between text-xs font-mono mb-1.5">
                   <span className="text-slate-300 font-bold">Meetings & Operations</span>
-                  <span className="text-slate-500 font-extrabold">15%</span>
+                  <span className="text-slate-500 font-extrabold">{meetingPct}%</span>
                 </div>
-                <div className="h-2 bg-[#060a12] rounded-full">
-                  <div className="h-full bg-slate-600 rounded-full" style={{ width: '15%' }} />
+                <div className="h-2 bg-[#060a12] rounded-full overflow-hidden">
+                  <div className="h-full bg-slate-600 rounded-full transition-all duration-500" style={{ width: `${meetingPct}%` }} />
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Mood Trend glowing line chart */}
+        {/* Mood Trend curved line chart */}
         <div className="card">
-          <p className="label mb-4">// Mood Trend (last 30 days)</p>
+          <p className="text-[10px] font-bold text-slate-500 font-mono uppercase tracking-widest mb-4 select-none">// Mood Trend (last 30 days)</p>
           {moodTrend.length < 2 ? (
-            <p className="text-slate-500 text-sm font-mono py-10 text-center">Log mood in your entries to track it here.</p>
+            <p className="text-slate-500 text-sm font-mono py-10 text-center select-none">Log mood in your entries to track it here.</p>
           ) : (
             <ResponsiveContainer width="100%" height={220}>
               <LineChart data={moodTrend} margin={{ right: 10 }}>
