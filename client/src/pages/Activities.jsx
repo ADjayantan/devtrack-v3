@@ -7,6 +7,7 @@ import {
 import ActivityCard, { TYPE_META } from '../components/ActivityCard';
 import Pagination from '../components/Pagination';
 import LoadingSpinner from '../components/LoadingSpinner';
+import { today } from '../utils/dateUtils';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const TYPES = ['exercise', 'reading', 'meditation', 'coding', 'custom'];
@@ -20,7 +21,7 @@ const DEFAULT_NAMES = {
 };
 
 const makeEmptyForm = () => ({
-  date:      new Date().toISOString().split('T')[0],
+  date:      today(),
   type:      'exercise',
   name:      'Workout',
   duration:  30,

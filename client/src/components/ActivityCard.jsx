@@ -20,51 +20,69 @@ const formatDuration = (mins) => {
   return m ? `${h}h ${m}m` : `${h}h`;
 };
 
+const ACCENT_BARS = {
+  exercise:   'accent-bar-orange',
+  coding:     'accent-bar-cyan',
+  reading:    'accent-bar-violet',
+  meditation: 'accent-bar-violet',
+  custom:     'accent-bar-cyan',
+};
+
 const ActivityCard = ({ activity, onEdit, onDelete }) => {
   const meta = TYPE_META[activity.type] || TYPE_META.custom;
   const duration = formatDuration(activity.duration);
+  const accentClass = ACCENT_BARS[activity.type] || 'accent-bar-cyan';
 
   return (
-    <div className={`card hover:border-slate-600 transition-all duration-200 animate-slide-up border ${meta.border}`}>
-      <div className="flex items-start gap-3">
+    <div className={`card hover:border-slate-700/60 transition-all duration-300 animate-slide-up relative overflow-hidden ${accentClass}`}>
+      <div className="flex items-start gap-4">
         {/* Type icon */}
-        <div className={`w-9 h-9 rounded-lg flex items-center justify-center text-lg shrink-0 ${meta.bg} border ${meta.border}`}>
+        <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg shrink-0 ${meta.bg} border ${meta.border} shadow-inner`}>
           {meta.icon}
         </div>
 
         {/* Content */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className={`text-xs font-mono font-medium ${meta.color}`}>{meta.label}</span>
+            <span className={`text-[10px] font-mono font-bold uppercase tracking-wider ${meta.color}`}>
+              {meta.label}
+            </span>
             {activity.intensity && (
-              <span className={`text-xs font-mono px-1.5 py-0.5 rounded border ${INTENSITY_COLORS[activity.intensity]}`}>
+              <span className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded-lg border uppercase tracking-wider ${INTENSITY_COLORS[activity.intensity]}`}>
                 {activity.intensity}
               </span>
             )}
           </div>
-          <p className="text-sm text-slate-200 font-medium mt-0.5">{activity.name}</p>
-          <div className="flex items-center gap-3 mt-1.5">
-            <span className="text-xs text-slate-500 font-mono">{activity.date}</span>
-            {duration && <span className="text-xs text-slate-400 font-mono">⏱ {duration}</span>}
+          <p className="text-base text-white font-bold tracking-tight mt-1">{activity.name}</p>
+          <div className="flex items-center gap-4 mt-2 text-slate-500 text-xs font-mono">
+            <span>{activity.date}</span>
+            {duration && (
+              <span className="flex items-center gap-1 text-slate-400 bg-navy-950/40 border border-slate-900 px-2 py-0.5 rounded-lg">
+                ⏱ {duration}
+              </span>
+            )}
           </div>
           {activity.notes && (
-            <p className="text-xs text-slate-500 mt-1.5 line-clamp-2">{activity.notes}</p>
+            <div className="mt-3 text-xs text-slate-400 leading-relaxed bg-navy-950/30 border border-slate-900/50 p-3 rounded-xl font-sans">
+              <p className="font-mono text-[9px] text-slate-500 uppercase tracking-widest mb-1">// notes</p>
+              {activity.notes}
+            </div>
           )}
         </div>
 
         {/* Actions */}
-        <div className="flex gap-2 shrink-0">
+        <div className="flex gap-1.5 shrink-0 self-start">
           <button
             onClick={() => onEdit(activity)}
-            className="text-xs text-slate-400 hover:text-white font-mono border border-slate-700
-                       hover:border-slate-500 px-2.5 py-1.5 rounded-lg transition-all"
+            className="text-[10px] text-slate-400 hover:text-white font-mono border border-slate-800 bg-navy-900/40
+                       hover:border-slate-600 px-2.5 py-1.5 rounded-xl transition-all uppercase tracking-wider"
           >
             edit
           </button>
           <button
             onClick={() => onDelete(activity._id)}
-            className="text-xs text-red-500 hover:text-red-400 font-mono border border-red-900/50
-                       hover:border-red-700 px-2.5 py-1.5 rounded-lg transition-all"
+            className="text-[10px] text-red-400 hover:text-red-300 font-mono border border-red-950/50 bg-red-950/5
+                       hover:border-red-900/60 px-2.5 py-1.5 rounded-xl transition-all uppercase tracking-wider"
           >
             del
           </button>

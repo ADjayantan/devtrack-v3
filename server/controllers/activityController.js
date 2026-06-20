@@ -48,7 +48,14 @@ const getActivities = async (req, res, next) => {
 // ─── GET /api/activities/today ────────────────────────────────────────────────
 const getTodayActivities = async (req, res, next) => {
   try {
-    const today = new Date().toISOString().split('T')[0];
+    let today = req.query.date;
+    if (!today || !/^\d{4}-\d{2}-\d{2}$/.test(today)) {
+      const d = new Date();
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      today = `${year}-${month}-${day}`;
+    }
     const activities = await Activity.find({ user: req.userId, date: today })
       .sort({ createdAt: -1 }).lean();
     res.json({ activities, date: today });
@@ -63,7 +70,7 @@ const createActivity = async (req, res, next) => {
       user: req.userId,
       date,
       type,
-      name: name.trim(),
+      name: name ? name.trim() : '',
       duration: duration ? Number(duration) : 0,
       intensity: (type === 'exercise' && intensity) ? intensity : null,
       notes: notes ? notes.trim() : '',

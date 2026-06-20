@@ -9,6 +9,7 @@ import StatCard from '../components/StatCard';
 import WeeklyChart from '../components/WeeklyChart';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { TYPE_META } from '../components/ActivityCard';
+import { today } from '../utils/dateUtils';
 
 // FIX BUG-3: Dashboard now shows toast if API call fails
 const Dashboard = () => {
@@ -23,10 +24,11 @@ const Dashboard = () => {
   useEffect(() => {
     const load = async () => {
       try {
+        const localToday = today();
         const [logsRes, roadmapsRes, activitiesRes] = await Promise.all([
-          fetchLogs({ limit: 50 }),
+          fetchLogs({ limit: 50, today: localToday }),
           fetchRoadmaps(),
-          fetchTodayActivities(),
+          fetchTodayActivities({ date: localToday }),
         ]);
         setLogs(logsRes.data.logs);
         setStats(logsRes.data.stats);
@@ -50,7 +52,7 @@ const Dashboard = () => {
   const roadmapProgress = totalMilestones > 0 ? Math.round((doneMilestones / totalMilestones) * 100) : 0;
 
   // Daily goal progress (today's log vs user goal)
-  const todayStr  = new Date().toISOString().split('T')[0];
+  const todayStr  = today();
   const todayLog  = logs.find((l) => l.date === todayStr);
   const goalHours = user?.dailyGoalHours || 2;
   const goalPct   = todayLog ? Math.min(100, Math.round((todayLog.hoursSpent / goalHours) * 100)) : 0;

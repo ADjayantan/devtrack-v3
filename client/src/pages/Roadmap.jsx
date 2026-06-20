@@ -100,13 +100,16 @@ const Roadmap = () => {
   return (
     <div className="max-w-3xl mx-auto px-4 py-8 space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between animate-fade-in">
+      <div className="flex items-start justify-between animate-fade-in">
         <div>
           <p className="font-mono text-cyan-500 text-sm">// roadmaps</p>
-          <h1 className="text-2xl font-bold text-white mt-1">Learning Roadmaps</h1>
+          <h1 className="text-3xl font-extrabold text-white mt-1 tracking-tight">Roadmap</h1>
+          <p className="text-slate-400 text-sm mt-1.5 leading-relaxed">
+            Track strategic initiatives, feature rollouts, and technical milestones.
+          </p>
         </div>
         {!showCreateForm && (
-          <button onClick={() => setShowCreateForm(true)} className="btn-primary">
+          <button onClick={() => setShowCreateForm(true)} className="btn-primary shrink-0">
             + New Roadmap
           </button>
         )}
@@ -165,35 +168,44 @@ const Roadmap = () => {
           const progress = total > 0 ? Math.round((done / total) * 100) : 0;
 
           return (
-            <div key={roadmap._id} className="card space-y-4 animate-slide-up">
+            <div key={roadmap._id} className="card space-y-5 animate-slide-up border-l-4 border-l-cyan-400">
               {/* Header */}
-              <div className="flex items-start justify-between">
-                <div>
-                  <h2 className="text-white font-semibold">{roadmap.title}</h2>
+              <div className="flex items-start justify-between gap-4">
+                <div className="space-y-1">
+                  <h2 className="text-xl font-bold text-white tracking-tight">{roadmap.title}</h2>
                   {roadmap.description && (
-                    <p className="text-slate-500 text-xs mt-1">{roadmap.description}</p>
+                    <p className="text-slate-400 text-sm leading-relaxed">{roadmap.description}</p>
                   )}
                 </div>
-                <button onClick={() => handleDeleteRoadmap(roadmap._id)} className="btn-danger">
-                  delete
+                <button
+                  onClick={() => handleDeleteRoadmap(roadmap._id)}
+                  className="w-9 h-9 rounded-xl border border-red-950/40 bg-red-950/10 text-red-400 hover:bg-red-950/30 hover:border-red-900/60 flex items-center justify-center transition-all shrink-0"
+                  title="Delete Roadmap"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
                 </button>
               </div>
 
               {/* Progress */}
-              <div>
-                <div className="flex justify-between text-xs font-mono text-slate-500 mb-1.5">
-                  <span>{done}/{total} milestones</span>
-                  <span className="text-cyan-400">{progress}%</span>
+              <div className="bg-navy-950/30 border border-slate-900 p-4 rounded-2xl">
+                <div className="flex justify-between items-center text-xs font-mono mb-2">
+                  <span className="text-slate-400 font-bold">{done} / {total} milestones</span>
+                  <span className="text-cyan-400 font-extrabold">{progress}%</span>
                 </div>
-                <div className="h-1.5 bg-navy-950 rounded-full overflow-hidden">
+                <div className="h-2 bg-[#060a12] rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-gradient-to-r from-cyan-500 to-cyan-400 rounded-full transition-all duration-700"
+                    className="h-full bg-gradient-to-r from-cyan-500 to-cyan-400 rounded-full transition-all duration-700 shadow-[0_0_10px_rgba(6,182,212,0.3)]"
                     style={{ width: `${progress}%` }}
                   />
                 </div>
               </div>
 
-              {/* Milestones */}
+              {/* Milestones Header */}
+              {total > 0 && <p className="label !mb-2 tracking-widest font-mono">// milestones</p>}
+
+              {/* Milestones List */}
               <div className="space-y-2">
                 {roadmap.milestones.map((milestone) => (
                   <MilestoneItem
@@ -206,11 +218,11 @@ const Roadmap = () => {
               </div>
 
               {/* Add milestone */}
-              <div className="flex gap-2 pt-2 border-t border-slate-800">
+              <div className="flex gap-2 pt-4 border-t border-slate-800/80">
                 <input
-                  className="input flex-1 text-sm"
+                  className="input flex-1 text-sm bg-[#060a12]/40"
                   type="text"
-                  placeholder="Add a milestone..."
+                  placeholder="New milestone..."
                   value={milestoneInputs[roadmap._id] || ''}
                   onChange={(e) =>
                     setMilestoneInputs((prev) => ({ ...prev, [roadmap._id]: e.target.value }))

@@ -1,24 +1,28 @@
 const DailyLog = require('../models/DailyLog');
 const Activity = require('../models/Activity');
 
-// ─── Streak Algorithm (24-hour window) ───────────────────────────────────────
+// ─── Streak Algorithm (Calendar Days) ────────────────────────────────────────
 // Streak counts consecutive calendar days of activity (logs OR activities).
-// BUT: if the most recent entry (log or activity) is older than 24 real-world
-// hours, the streak resets to 0 — even if "yesterday" and "today" are only
-// 1 calendar day apart. This is stricter than the old calendar-only check.
-const calculateStreak = (datesSortedDesc, lastTimestampMs) => {
+// It resets to 0 only if the user missed logging for "today" AND "yesterday" (local time).
+const calculateStreak = (datesSortedDesc, localTodayStr) => {
   if (!datesSortedDesc.length) return 0;
 
-  // 24hr window: no activity in the past 24 hours → streak broken
-  const hoursSinceLast = (Date.now() - lastTimestampMs) / (1000 * 60 * 60);
-  if (hoursSinceLast > 24) return 0;
-
   const toDay = (d) => new Date(d + 'T00:00:00Z');
+  const latestActivityDateStr = datesSortedDesc[0];
+  
+  // Calculate difference in days between local today and the latest activity date
+  const diffFromToday = (toDay(localTodayStr) - toDay(latestActivityDateStr)) / 86400000;
+  
+  // If the user has not logged today AND did not log yesterday, the streak is broken (resets to 0)
+  if (diffFromToday > 1) {
+    return 0;
+  }
+
   let streak = 1;
   for (let i = 0; i < datesSortedDesc.length - 1; i++) {
     const diff = (toDay(datesSortedDesc[i]) - toDay(datesSortedDesc[i + 1])) / 86400000;
     if (diff === 1) streak++;
-    else break;
+    else if (diff > 1) break; // Gap in days, stop counting
   }
   return streak;
 };
@@ -56,12 +60,16 @@ const getLogs = async (req, res, next) => {
       ...activityDates.map((a) => a.date),
     ])].sort().reverse();
 
-    // Last activity timestamp = max of last log.updatedAt and last activity.updatedAt
-    const lastLogMs     = allStats.length    ? new Date(allStats[0].updatedAt).getTime()    : 0;
-    const lastActivityMs = activityDates.length ? new Date(activityDates[0].updatedAt).getTime() : 0;
-    const lastTimestampMs = Math.max(lastLogMs, lastActivityMs);
+    let localToday = req.query.today;
+    if (!localToday || !/^\d{4}-\d{2}-\d{2}$/.test(localToday)) {
+      const d = new Date();
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      localToday = `${year}-${month}-${day}`;
+    }
 
-    const streak     = calculateStreak(allDates, lastTimestampMs);
+    const streak     = calculateStreak(allDates, localToday);
     const totalHours = allStats.reduce((s, l) => s + l.hoursSpent, 0);
     const totalTasks = allStats.reduce((s, l) => s + l.tasksCompleted, 0);
 

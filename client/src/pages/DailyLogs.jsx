@@ -123,6 +123,11 @@ const DailyLogs = () => {
     startEdit, cancelForm, submitLog, removeLog, setShowForm,
   } = useLogs();
 
+  const [searchText, setSearchText] = useState(filters.search || '');
+  const [localTag, setLocalTag]       = useState(filters.tag || '');
+  const [startDate, setStartDate]     = useState(filters.startDate || '');
+  const [endDate, setEndDate]         = useState(filters.endDate || '');
+
   // Surface load errors from the hook as toasts
   useEffect(() => {
     if (loadError) toast.error('Failed to load logs: ' + loadError.message);
@@ -169,40 +174,137 @@ const DailyLogs = () => {
     }
   };
 
+  const applyFilters = () => {
+    handleFilterChange({
+      search: searchText,
+      tag: localTag,
+      startDate,
+      endDate,
+    });
+  };
+
+  const clearFilters = () => {
+    setSearchText('');
+    setLocalTag('');
+    setStartDate('');
+    setEndDate('');
+    handleFilterChange({
+      search: '',
+      tag: '',
+      startDate: '',
+      endDate: '',
+    });
+  };
+
+  const hasActiveFilters = filters.search || filters.tag || filters.startDate || filters.endDate;
+
   return (
     <div className="max-w-3xl mx-auto px-4 py-8 space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between animate-fade-in">
+      <div className="flex items-center justify-between animate-fade-in gap-4">
         <div>
           <p className="font-mono text-cyan-500 text-sm">// daily logs</p>
-          <h1 className="text-2xl font-bold text-white mt-1">Learning Journal</h1>
+          <h1 className="text-3xl font-extrabold text-white mt-1 tracking-tight">Daily Logs</h1>
         </div>
-        <div className="flex gap-2 flex-wrap justify-end">
+        <div className="flex gap-2.5 shrink-0">
           <button onClick={handleExport} disabled={exporting}
-            className="btn-ghost text-xs px-3 py-2">
-            {exporting ? '...' : '↓ CSV'}
-          </button>
-          <button onClick={() => setShowFilters((p) => !p)}
-            className={`btn-ghost text-xs px-3 py-2 ${showFilters ? 'border-cyan-500/40 text-cyan-400' : ''}`}>
-            ⊟ Filter
+            className="btn-ghost text-xs px-4 py-2 border border-slate-800 flex items-center gap-1.5">
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+            {exporting ? '...' : 'Export CSV'}
           </button>
           {!showForm && (
-            <button onClick={() => setShowForm(true)} className="btn-primary text-xs px-3 py-2">
-              + New Log
+            <button onClick={() => setShowForm(true)} className="btn-primary text-xs px-4 py-2 flex items-center gap-1.5 shadow-lg">
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"/></svg>
+              New Log Entry
             </button>
           )}
         </div>
       </div>
 
       {/* Stats bar */}
-      <div className="flex flex-wrap gap-4 font-mono text-xs text-slate-400 border-b border-slate-800 pb-4">
-        <span>🔥 <span className="text-white">{stats.streak || 0}</span> streak</span>
-        <span>📅 <span className="text-white">{stats.totalDays || 0}</span> days</span>
-        <span>⏱ <span className="text-white">{stats.totalHours || 0}h</span></span>
-        <span>✓ <span className="text-white">{stats.totalTasks || 0}</span> tasks</span>
+      <div className="flex flex-wrap gap-4 font-mono text-xs text-slate-400 border-b border-slate-900 pb-4 select-none">
+        <span>🔥 <span className="text-cyan-400 font-bold">{stats.streak || 0}</span> streak</span>
+        <div className="border-l border-slate-850 h-4" />
+        <span>📅 <span className="text-white font-bold">{stats.totalDays || 0}</span> days</span>
+        <div className="border-l border-slate-850 h-4" />
+        <span>⏱ <span className="text-white font-bold">{stats.totalHours || 0}h</span> studies</span>
+        <div className="border-l border-slate-850 h-4" />
+        <span>✓ <span className="text-white font-bold">{stats.totalTasks || 0}</span> tasks done</span>
       </div>
 
-      {showFilters && <LogFilters onFilterChange={handleFilterChange} activeFilters={filters} />}
+      {/* Search & Filter Card */}
+      <div className="card space-y-4 border border-slate-800 bg-navy-900/10">
+        <div className="relative">
+          <input
+            className="input pl-10"
+            type="text"
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && applyFilters()}
+            placeholder="Search logs..."
+          />
+          <svg className="w-4 h-4 text-slate-500 absolute left-3.5 top-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setShowFilters((p) => !p)}
+            className={`btn-ghost text-xs px-3.5 py-2 flex items-center gap-1.5 ${showFilters ? 'border-cyan-500/40 text-cyan-400 bg-cyan-500/5' : ''}`}
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+            </svg>
+            Filter Options
+          </button>
+
+          {hasActiveFilters && (
+            <button onClick={clearFilters} className="text-xs font-mono text-red-400 hover:text-red-300 transition-colors uppercase tracking-wider ml-auto">
+              [ Clear Filters ]
+            </button>
+          )}
+
+          {!hasActiveFilters && (searchText || localTag || startDate || endDate) && (
+            <button onClick={applyFilters} className="btn-primary text-[10px] px-3 py-1.5 ml-auto">
+              Apply
+            </button>
+          )}
+          {hasActiveFilters && (searchText !== filters.search || localTag !== filters.tag || startDate !== filters.startDate || endDate !== filters.endDate) && (
+            <button onClick={applyFilters} className="btn-primary text-[10px] px-3 py-1.5 ml-auto">
+              Update
+            </button>
+          )}
+        </div>
+
+        {/* Expandable Filter Details */}
+        {showFilters && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-slate-900 animate-slide-up">
+            {/* Tag search */}
+            <div>
+              <label className="label">Filter by Tag</label>
+              <input
+                className="input"
+                type="text"
+                value={localTag}
+                onChange={(e) => setLocalTag(e.target.value)}
+                placeholder="e.g. react, node"
+              />
+            </div>
+            {/* Date range */}
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="label">From Date</label>
+                <input className="input" type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+              </div>
+              <div>
+                <label className="label">To Date</label>
+                <input className="input" type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
 
       {showForm && (
         <LogForm form={form} editId={editId} submitting={submitting}
@@ -211,9 +313,9 @@ const DailyLogs = () => {
 
       {loading ? <LoadingSpinner /> : logs.length === 0 ? (
         <div className="card text-center py-12">
-          <p className="text-slate-500 text-sm">No logs found.</p>
+          <p className="text-slate-500 text-sm font-mono">No logs found.</p>
           <p className="text-slate-600 text-xs font-mono mt-1">
-            {filters.search || filters.tag ? 'Try different filters.' : 'Start tracking to build your streak.'}
+            {hasActiveFilters ? 'Try different search queries or clear your filters.' : 'Start tracking to build your streak.'}
           </p>
         </div>
       ) : (

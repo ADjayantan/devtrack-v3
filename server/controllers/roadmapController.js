@@ -62,9 +62,7 @@ const updateRoadmap = async (req, res, next) => {
 
     // Fix: original had no way to delete individual milestones
     if (deleteMilestone) {
-      roadmap.milestones = roadmap.milestones.filter(
-        (m) => m._id.toString() !== deleteMilestone
-      );
+      roadmap.milestones.pull(deleteMilestone);
     }
 
     await roadmap.save();

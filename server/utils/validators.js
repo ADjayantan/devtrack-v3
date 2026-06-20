@@ -71,6 +71,24 @@ const logUpdateRules = [
 
 const activityRules = [
   body('date')
+    .notEmpty().withMessage('Date is required')
+    .matches(/^\d{4}-\d{2}-\d{2}$/).withMessage('Date must be YYYY-MM-DD')
+    .custom((value) => {
+      if (new Date(value + 'T00:00:00Z') > new Date()) throw new Error('Date cannot be in the future');
+      return true;
+    }),
+  body('type')
+    .notEmpty().withMessage('Type is required')
+    .isIn(['exercise', 'reading', 'meditation', 'coding', 'custom'])
+    .withMessage('Type must be exercise, reading, meditation, coding, or custom'),
+  body('name').trim().notEmpty().withMessage('Activity name is required').isLength({ max: 100 }),
+  body('duration').optional().isInt({ min: 0, max: 1440 }).withMessage('Duration must be 0–1440 minutes'),
+  body('intensity').optional().isIn(['low', 'medium', 'high', '']).withMessage('Intensity must be low, medium, or high'),
+  body('notes').optional().trim().isLength({ max: 500 }),
+];
+
+const activityUpdateRules = [
+  body('date')
     .optional()
     .matches(/^\d{4}-\d{2}-\d{2}$/).withMessage('Date must be YYYY-MM-DD')
     .custom((value) => {
@@ -99,6 +117,7 @@ const logQueryRules = [
   query('startDate').optional().matches(/^\d{4}-\d{2}-\d{2}$/),
   query('endDate').optional().matches(/^\d{4}-\d{2}-\d{2}$/),
   query('tag').optional().trim().isLength({ max: 30 }),
+  query('today').optional().matches(/^\d{4}-\d{2}-\d{2}$/),
 ];
 
 const profileRules = [
@@ -108,4 +127,4 @@ const profileRules = [
   body('newPassword').optional().isLength({ min: 6 }).withMessage('New password must be at least 6 characters'),
 ];
 
-module.exports = { validate, registerRules, loginRules, logRules, logUpdateRules, roadmapRules, logQueryRules, profileRules, activityRules };
+module.exports = { validate, registerRules, loginRules, logRules, logUpdateRules, roadmapRules, logQueryRules, profileRules, activityRules, activityUpdateRules };

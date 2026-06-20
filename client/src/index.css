@@ -3,69 +3,80 @@
 @tailwind utilities;
 
 @layer base {
-  /*
-   * DO NOT use @apply dark here.
-   * "dark" is a Tailwind variant/modifier — it cannot be used as a utility class.
-   * The dark class is applied to <html> at runtime by ThemeContext.jsx,
-   * and the initial value is set in index.html (class="dark").
-   */
   body {
-    @apply bg-navy-900 text-slate-100 font-sans antialiased;
-    background-image: radial-gradient(ellipse at 20% 20%, rgba(0, 217, 255, 0.04) 0%, transparent 60%),
-      radial-gradient(ellipse at 80% 80%, rgba(124, 58, 237, 0.04) 0%, transparent 60%);
+    @apply bg-[#060a12] text-slate-100 font-sans antialiased;
+    background-image: radial-gradient(ellipse at 20% 20%, rgba(0, 217, 255, 0.03) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 80%, rgba(124, 58, 237, 0.03) 0%, transparent 60%);
     min-height: 100vh;
   }
 
   * {
-    @apply border-slate-700/50;
+    @apply border-slate-800/80;
   }
 
   ::-webkit-scrollbar {
     width: 6px;
+    height: 6px;
   }
 
   ::-webkit-scrollbar-track {
-    @apply bg-navy-800;
+    @apply bg-[#060a12];
   }
 
   ::-webkit-scrollbar-thumb {
-    @apply bg-slate-600 rounded-full;
+    @apply bg-slate-800 rounded-full hover:bg-slate-700;
   }
 }
 
 @layer components {
   .card {
-    @apply bg-navy-800 border border-slate-700/50 rounded-xl p-6;
+    @apply bg-navy-900/40 backdrop-blur-lg border border-slate-800/60 rounded-2xl p-6 shadow-2xl transition-all duration-300;
+  }
+
+  .card-glow {
+    @apply border-cyan-500/20 shadow-[0_0_20px_rgba(0,217,255,0.06)];
   }
 
   .btn-primary {
-    @apply bg-cyan-500 text-navy-950 font-semibold px-5 py-2.5 rounded-lg
-           hover:bg-cyan-400 active:scale-95 transition-all duration-150
-           disabled:opacity-50 disabled:cursor-not-allowed text-sm;
+    @apply bg-cyan-400 text-[#060a12] font-bold px-5 py-2.5 rounded-xl
+           hover:bg-cyan-300 hover:shadow-[0_0_20px_rgba(34,211,238,0.3)]
+           active:scale-95 transition-all duration-200
+           disabled:opacity-50 disabled:cursor-not-allowed text-xs font-mono uppercase tracking-wider;
   }
 
   .btn-ghost {
-    @apply border border-slate-600 text-slate-300 font-medium px-5 py-2.5 rounded-lg
-           hover:border-slate-400 hover:text-white active:scale-95 transition-all duration-150 text-sm;
+    @apply border border-slate-800 bg-navy-900/30 text-slate-300 font-bold px-5 py-2.5 rounded-xl
+           hover:border-slate-600 hover:text-white active:scale-95 transition-all duration-200 text-xs font-mono uppercase tracking-wider;
   }
 
   .btn-danger {
-    @apply border border-red-800/60 text-red-400 font-medium px-4 py-2 rounded-lg text-sm
-           hover:bg-red-950/40 active:scale-95 transition-all duration-150;
+    @apply border border-red-950/60 bg-red-950/10 text-red-400 font-semibold px-4 py-2 rounded-xl text-xs font-mono uppercase tracking-wider
+           hover:bg-red-950/30 hover:border-red-800 active:scale-95 transition-all duration-200;
   }
 
   .input {
-    @apply w-full bg-navy-950 border border-slate-700 rounded-lg px-4 py-2.5 text-sm
+    @apply w-full bg-navy-950/60 border border-slate-800 rounded-xl px-4 py-2.5 text-sm
            text-slate-100 placeholder:text-slate-500 outline-none
-           focus:border-cyan-500/60 focus:ring-1 focus:ring-cyan-500/30 transition-all;
+           focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/20 transition-all;
   }
 
   .label {
-    @apply block text-xs font-medium text-slate-400 mb-1.5 font-mono uppercase tracking-widest;
+    @apply block text-[10px] font-bold text-slate-400 mb-2 font-mono uppercase tracking-widest;
   }
 
   .tag {
-    @apply font-mono text-xs bg-navy-700 text-cyan-400 border border-cyan-900/50 px-2 py-0.5 rounded-md;
+    @apply font-mono text-[10px] font-bold bg-navy-800/60 text-cyan-400 border border-cyan-950 px-2 py-0.5 rounded-md;
+  }
+
+  /* Accents for cards */
+  .accent-bar-cyan {
+    @apply border-l-4 border-l-cyan-400;
+  }
+  .accent-bar-orange {
+    @apply border-l-4 border-l-orange-500;
+  }
+  .accent-bar-violet {
+    @apply border-l-4 border-l-violet-500;
   }
 }
 
@@ -76,7 +87,7 @@ html.light body {
 }
 
 html.light .card {
-  @apply bg-white border-slate-200;
+  @apply bg-white border-slate-200 shadow-md;
 }
 
 html.light .input {
@@ -88,7 +99,7 @@ html.light .label {
 }
 
 html.light .btn-ghost {
-  @apply border-slate-300 text-slate-600 hover:border-slate-400 hover:text-slate-900;
+  @apply border-slate-300 bg-slate-100 text-slate-600 hover:border-slate-400 hover:text-slate-900;
 }
 
 html.light nav {

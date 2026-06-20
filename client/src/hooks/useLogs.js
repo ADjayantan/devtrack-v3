@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { fetchLogs, createLog, updateLog, deleteLog } from '../services/logService';
+import { today } from '../utils/dateUtils';
 
 // Compute today() inside the factory function, not at module load time
 const makeEmptyForm = () => ({
-  date: new Date().toISOString().split('T')[0],
+  date: today(),
   learned: '',
   tasksCompleted: 0,
   hoursSpent: 0,
@@ -30,7 +31,7 @@ export const useLogs = () => {
       const cleanParams = Object.fromEntries(
         Object.entries(filters).filter(([, v]) => v !== '' && v !== null && v !== undefined)
       );
-      const { data } = await fetchLogs(cleanParams);
+      const { data } = await fetchLogs({ ...cleanParams, today: today() });
       setLogs(data.logs);
       setStats(data.stats);
       setPagination(data.pagination);
